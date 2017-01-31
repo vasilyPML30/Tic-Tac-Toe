@@ -1,11 +1,8 @@
 #include "NcursesView.h"
 #include <ncurses.h>
 
-NcursesView::NcursesView(Board &board): _board(board)
-{
-    _x = 0;
-    _y = 0;
-}
+NcursesView::NcursesView(Board &board, Player &p1, Player &p2):
+                        _board(board), _player1(p1), _player2(p2) {}
 
 void NcursesView::showBoard() const
 {
@@ -20,20 +17,22 @@ void NcursesView::showBoard() const
 void NcursesView::doGameCycle()
 {
     state curState = GAME;
-    char sign = 'O';
+    char sign = 'X';
+    int x = 0, y = 0;
     initscr();
     raw();
     noecho();
     showBoard();
     while (curState == GAME)
     {
-        mvprintw(_board.getH(), 0, "%c Move.\n", sign);
-        if (!_getInput())
+        Player &player = (sign == 'X' ? _player1 : _player2);
+        mvprintw(_board.getH(), 0, "%s Move (%c).\n", player.getName().c_str(), sign);
+        if (!player.getInput(x, y, _board))
         {
             curState = DRAW;
             break;
         }
-        _board.move(_x, _y, sign);
+        _board.move(x, y, sign);
         addch(sign);
         sign = (sign == 'O' ? 'X' : 'O');
         curState = _board.isWin();
@@ -47,41 +46,7 @@ void NcursesView::_showResult(state result) const
     if (result == DRAW)
         mvprintw(_board.getH(), 0, "Draw.\nPress any key to exit\n");
     else
-        mvprintw(_board.getH(), 0, "%c wins!\nPress any key to exit\n", (result == NOUGHTS ? 'O' : 'X'));
+        mvprintw(_board.getH(), 0, "%s wins!\nPress any key to exit\n",
+                                   (result == CROSSES ? _player1 : _player2).getName().c_str());
     getch();
-}
-
-bool NcursesView::_getInput()
-{
-    while (true)
-    {
-        move(_y, _x);
-        char ch = getch();
-        switch (ch)
-        {
-            case 65:
-                if (_y > 0)
-                    _y--;
-                break;
-            case 66:
-                if (_y < _board.getH() - 1)
-                    _y++;
-                break;
-            case 67:
-                if (_x < _board.getW() - 1)
-                    _x++;
-                break;
-            case 68:
-                if (_x > 0)
-                    _x--;
-                break;
-            case 'x':
-                return false;
-            case ' ':
-                if (_board.canMove(_x, _y))
-                    return true;
-                break;
-        }
-    }
-    return false;
 }

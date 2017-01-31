@@ -1,7 +1,9 @@
 all: bin main
-main: bin/main.o bin/Board.o bin/BoardView.o bin/NcursesView.o
-	g++ bin/main.o bin/Board.o bin/BoardView.o bin/NcursesView.o -lncurses -o main
-bin/NcursesView.o:  src/NcursesView.cpp include/Board.h include/NcursesView.h
+main: bin/main.o bin/Board.o bin/BoardView.o bin/NcursesView.o bin/Player.o
+	g++ bin/main.o bin/Board.o bin/BoardView.o bin/NcursesView.o bin/Player.o -lncurses -o main
+bin/Player.o:  src/Player.cpp include/Board.h include/Player.h
+	g++ -c -Wall -Wextra -Wshadow -Werror -g -I ./include src/Player.cpp -o bin/Player.o
+bin/NcursesView.o:  src/NcursesView.cpp include/Board.h include/NcursesView.h include/Player.h
 	g++ -c -Wall -Wextra -Wshadow -Werror -g -I ./include src/NcursesView.cpp -o bin/NcursesView.o
 bin/main.o: src/main.cpp include/Board.h include/BoardView.h include/NcursesView.h
 	g++ -c -Wall -Wextra -Wshadow -Werror -g -I ./include src/main.cpp -o bin/main.o
