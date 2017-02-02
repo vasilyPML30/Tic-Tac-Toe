@@ -10,14 +10,16 @@
 #define LEFT_KEY KEY_LEFT
 #define RIGHT_KEY KEY_RIGHT
 #define EXIT_KEY 'x'
+#define SPACE_KEY 32
 
 #ifdef _WIN32
   #include <curses.h>
   #define ENTER_KEY 13
   #define BACKSPACE_KEY 8
-  #define SPACE_KEY 32
 #else
   #include <ncurses.h>
+  #define ENTER_KEY '\n'
+  #define BACKSPACE_KEY 127
 #endif
 
 class Player

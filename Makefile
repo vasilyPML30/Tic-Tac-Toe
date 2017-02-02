@@ -1,6 +1,6 @@
 all: bin main
 main: bin/main.o bin/Board.o bin/BoardView.o bin/NcursesView.o bin/Player.o
-	g++ bin/main.o bin/Board.o bin/BoardView.o bin/NcursesView.o bin/Player.o -lpdcurses -lcurldll -o main
+	g++ bin/main.o bin/Board.o bin/BoardView.o bin/NcursesView.o bin/Player.o -lncurses -lcurl -o main
 bin/Player.o:  src/Player.cpp include/Board.h include/Player.h
 	g++ -c -std=c++14 -Wall -Wextra -Wshadow -Werror -g -I ./include src/Player.cpp -o bin/Player.o
 bin/NcursesView.o:  src/NcursesView.cpp include/Board.h include/NcursesView.h include/Player.h
