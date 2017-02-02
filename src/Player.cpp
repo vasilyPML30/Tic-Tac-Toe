@@ -1,9 +1,24 @@
 #include "Player.h"
-#include <unistd.h>
 #include <cstdio>
 #include <iostream>
+#include <algorithm>
 
 std::string WebPlayer::responce;
+
+static std::string to_string(int n)
+{
+    int tmp = std::abs(n);
+    std::string res;
+    while (tmp)
+    {
+        res += (tmp % 10) + '0';
+        tmp /= 10;
+    }
+    if (n < 0)
+        res += '-';
+    std::reverse(res.begin(), res.end());
+    return res;
+}
 
 Player::Player(std::string name): _name(name)
 {
@@ -27,8 +42,8 @@ WebPlayer::WebPlayer(std::string name, std::string bName, std::string bKey,
         curl_easy_setopt(_curlHandler, CURLOPT_URL,
                          ("http://vasyoid.netau.net/xo.php?command=create&name=" + 
                          _bName + "&key=" + _bKey + "&player=" + name +
-                         "&h=" + std::to_string(height) + "&w=" + std::to_string(width) +
-                         "&len=" + std::to_string(len)).c_str());
+                         "&h=" + to_string(height) + "&w=" + to_string(width) +
+                         "&len=" + to_string(len)).c_str());
         curl_easy_perform(_curlHandler);
     }
     else
@@ -74,6 +89,7 @@ bool WebPlayer::waitJoin()
     initscr();
     raw();
     noecho();
+    keypad(stdscr, TRUE);
     nodelay(stdscr, TRUE);
     mvprintw(0, 0, "Waiting for opponent...");
     refresh();
@@ -84,12 +100,16 @@ bool WebPlayer::waitJoin()
     while (responce == "")
     {
         ch = getch();
-        if (ch == 'x')
+        if (ch == EXIT_KEY)
         {
-           move(0, 0);
-           nodelay(stdscr, FALSE);
-           endwin();
-           return false;
+          move(0, 0);
+          nodelay(stdscr, FALSE);
+          endwin();
+          curl_easy_setopt(_curlHandler, CURLOPT_URL,
+                           ("http://vasyoid.netau.net/xo.php?command=drop&name=" + 
+                           _bName + "&key=" + _bKey).c_str());
+          curl_easy_perform(_curlHandler);
+          return false;
         }
         curl_easy_perform(_curlHandler);
     }
@@ -116,8 +136,8 @@ void WebPlayer::oppMove(int x, int y)
     curl_easy_setopt(_curlHandler, CURLOPT_URL,
                          ("http://vasyoid.netau.net/xo.php?command=insert&name=" + 
                          _bName + "&key=" + _bKey + "&number=" +
-                         std::to_string(_number) + "&x=" + std::to_string(_x) +
-                         "&y=" + std::to_string(_y)).c_str());
+                         to_string(_number) + "&x=" + to_string(_x) +
+                         "&y=" + to_string(_y)).c_str());
     curl_easy_perform(_curlHandler);
 }
 
@@ -129,6 +149,7 @@ std::string Player::getName() const
 bool ConsolePlayer::getInput(int &x, int &y, Board &board)
 {
     _number++;
+    keypad(stdscr, TRUE);
     move(_y, _x);
     refresh();
     while (true)
@@ -137,19 +158,19 @@ bool ConsolePlayer::getInput(int &x, int &y, Board &board)
         int ch = getch();
         switch (ch)
         {
-            case 65:
+            case UP_KEY:
                 if (_y > 0)
                     _y--;
                 break;
-            case 66:
+            case DOWN_KEY:
                 if (_y < board.getH() - 1)
                     _y++;
                 break;
-            case 67:
+            case RIGHT_KEY:
                 if (_x < board.getW() - 1)
                     _x++;
                 break;
-            case 68:
+            case LEFT_KEY:
                 if (_x > 0)
                     _x--;
                 break;
@@ -173,18 +194,19 @@ bool ConsolePlayer::getInput(int &x, int &y, Board &board)
 bool WebPlayer::getInput(int &x, int &y, Board &board)
 {
     int n, ch;
+    keypad(stdscr, TRUE);
     nodelay(stdscr, TRUE);
     move(_y, _x);
     refresh();
     _number++;
     curl_easy_setopt(_curlHandler, CURLOPT_URL,
                    ("http://vasyoid.netau.net/xo.php?command=get&name=" + 
-                     _bName + "&key=" + _bKey + "&number=" + std::to_string(_number)).c_str());
+                     _bName + "&key=" + _bKey + "&number=" + to_string(_number)).c_str());
     (void)board;
     while (true)
     {
         ch = getch();
-        if (ch == 'x')
+        if (ch == EXIT_KEY)
         {
             nodelay(stdscr, FALSE);
             return false;
@@ -193,7 +215,8 @@ bool WebPlayer::getInput(int &x, int &y, Board &board)
         sscanf(responce.c_str(), "%i %i %i", &n, &_x, &_y);
         if (n == _number)
         {
-            move(_y, _x);
+            if (_x >= 0)
+              move(_y, _x);
             x = _x;
             y = _y;
             nodelay(stdscr, FALSE);

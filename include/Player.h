@@ -3,8 +3,22 @@
 
 #include "Board.h"
 #include <string>
-#include <ncurses.h>
 #include <curl/curl.h>
+
+#define UP_KEY KEY_UP
+#define DOWN_KEY KEY_DOWN
+#define LEFT_KEY KEY_LEFT
+#define RIGHT_KEY KEY_RIGHT
+#define EXIT_KEY 'x'
+
+#ifdef _WIN32
+  #include <curses.h>
+  #define ENTER_KEY 13
+  #define BACKSPACE_KEY 8
+  #define SPACE_KEY 32
+#else
+  #include <ncurses.h>
+#endif
 
 class Player
 {

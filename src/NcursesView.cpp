@@ -1,6 +1,12 @@
 #include "NcursesView.h"
-#include <ncurses.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+  #include <curses.h>
+  #include <windows.h>
+#else
+  #include <ncurses.h>
+  #include <unistd.h>
+#endif
 
 NcursesView::NcursesView(Board &board, Player &p1, Player &p2):
                         _board(board), _player1(p1), _player2(p2) {}
@@ -27,7 +33,7 @@ void NcursesView::doGameCycle()
     while (curState == GAME)
     {
         Player &player = (sign == 'X' ? _player1 : _player2);
-        mvprintw(_board.getH(), 0, "%s Move (%c).\n", player.getName().c_str(), sign);
+        mvprintw(_board.getH(), 0, "%s's move (%c).\n", player.getName().c_str(), sign);
         if (!player.getInput(x, y, _board))
         {
             (sign == 'X' ? _player2 : _player1).oppMove(-1, -1);

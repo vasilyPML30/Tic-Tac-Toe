@@ -17,23 +17,23 @@ static int chooseMode()
     mvprintw(4, 0, "Create game");
     mvprintw(5, 0, "Join game");
     mvprintw(6, 0, "Exit");
-    int x = 0, y = 3;
+    int x = 0, y = 3, ch;
     while (true)
     {
+        //mvprintw(7, 0, "ch: %i", ch);
         move(y, x);
-        char ch = getch();
+        ch = getch();
         switch (ch)
         {
-            case 65:
+            case UP_KEY:
                 if (y > 3)
                     y--;
                 break;
-            case 66:
+            case DOWN_KEY:
                 if (y < 6)
                     y++;
                 break;
-            case ' ':
-            case '\n':
+            case ENTER_KEY:
                 clear();
                 return y - 3;
         }
@@ -42,7 +42,7 @@ static int chooseMode()
 
 static bool offline(int &h, int &w, int &len, std::string &name1, std::string &name2)
 {
-    std::string data[7] = {"10", "10", "5", "alice", "bob"};
+    std::string data[7] = {"10", "10", "5", "Alice", "Bob"};
     int maxLen[] = {2, 2, 1, 10, 10, 0, 0};
     mvprintw(0, 0, "Board height:");
     mvprintw(1, 0, "Board width:");
@@ -57,18 +57,18 @@ static bool offline(int &h, int &w, int &len, std::string &name1, std::string &n
     while (true)
     {
         move(y, x);
-        char ch = getch();
-        if (ch == 65 && y > 0)
+        int ch = getch();
+        if (ch == UP_KEY && y > 0)
         {
             y--;
             x = 15 + data[y].length();
         }
-        else if (ch == 66 && y < 6)
+        else if (ch == DOWN_KEY && y < 6)
         {
             y++;
             x = 15 + data[y].length();
         }
-        else if (ch == '\n' && y >= 5)
+        else if (ch == ENTER_KEY && y >= 5)
         {
             clear();
             sscanf(data[0].c_str(), "%i", &h);
@@ -79,8 +79,9 @@ static bool offline(int &h, int &w, int &len, std::string &name1, std::string &n
             return (y == 6);
         }
         else if ('a' <= ch && ch <= 'z' && 3 <= y && y <= 4
-                && (int)data[y].length() < maxLen[y])
-        {
+                 && (int)data[y].length() < maxLen[y])
+        {            if ((y == 3 && !data[3].length()) || (y == 4 && !data[4].length()))
+                ch += 'A' - 'a';
             data[y] += ch;
             mvprintw(y, 15, "%s", data[y].c_str());
             x++;
@@ -93,7 +94,7 @@ static bool offline(int &h, int &w, int &len, std::string &name1, std::string &n
             mvprintw(y, 15, "%s", data[y].c_str());
             x++;
         }
-        else if (ch == 127 && data[y].length())
+        else if (ch == BACKSPACE_KEY && data[y].length())
         {
             data[y].pop_back();
             mvprintw(y, --x, " ");
@@ -104,7 +105,7 @@ static bool offline(int &h, int &w, int &len, std::string &name1, std::string &n
 
 static bool create(int &h, int &w, int &len, std::string &name, std::string &bName, std::string &bKey)
 {
-    std::string data[8] = {"10", "10", "5", "alice", "stdboard", "123asd"};
+    std::string data[8] = {"10", "10", "5", "Alice", "stdboard", "123asd"};
     int maxLen[] = {2, 2, 1, 10, 10, 10, 0, 0};
     mvprintw(0, 0, "Board height:");
     mvprintw(1, 0, "Board width:");
@@ -120,18 +121,18 @@ static bool create(int &h, int &w, int &len, std::string &name, std::string &bNa
     while (true)
     {
         move(y, x);
-        char ch = getch();
-        if (ch == 65 && y > 0)
+        int ch = getch();
+        if (ch == UP_KEY && y > 0)
         {
             y--;
             x = 15 + data[y].length();
         }
-        else if (ch == 66 && y < 7)
+        else if (ch == DOWN_KEY && y < 7)
         {
             y++;
             x = 15 + data[y].length();
         }
-        else if (ch == '\n' && y >= 6)
+        else if (ch == ENTER_KEY && y >= 6)
         {
             clear();
             sscanf(data[0].c_str(), "%i", &h);
@@ -145,6 +146,8 @@ static bool create(int &h, int &w, int &len, std::string &name, std::string &bNa
         else if ('a' <= ch && ch <= 'z' && 3 <= y
                 && (int)data[y].length() < maxLen[y])
         {
+            if (y == 3 && !data[3].length())
+                ch += 'A' - 'a';
             data[y] += ch;
             mvprintw(y, 15, "%s", data[y].c_str());
             x++;
@@ -157,7 +160,7 @@ static bool create(int &h, int &w, int &len, std::string &name, std::string &bNa
             mvprintw(y, 15, "%s", data[y].c_str());
             x++;
         }
-        else if (ch == 127 && data[y].length())
+        else if (ch == BACKSPACE_KEY && data[y].length())
         {
             data[y].pop_back();
             mvprintw(y, --x, " ");
@@ -168,7 +171,7 @@ static bool create(int &h, int &w, int &len, std::string &name, std::string &bNa
 
 static bool join(std::string &name, std::string &bName, std::string &bKey)
 {
-    std::string data[5] = {"bob", "stdboard", "123asd"};
+    std::string data[5] = {"Bob", "stdboard", "123asd"};
     int maxLen[] = {10, 10, 10, 0, 0};
     mvprintw(0, 0, "Your name:");
     mvprintw(1, 0, "Board name:");
@@ -181,18 +184,18 @@ static bool join(std::string &name, std::string &bName, std::string &bKey)
     while (true)
     {
         move(y, x);
-        char ch = getch();
-        if (ch == 65 && y > 0)
+        int ch = getch();
+        if (ch == UP_KEY && y > 0)
         {
             y--;
             x = 12 + data[y].length();
         }
-        else if (ch == 66 && y < 4)
+        else if (ch == DOWN_KEY && y < 4)
         {
             y++;
             x = 12 + data[y].length();
         }
-        else if (ch == '\n' && y >= 3)
+        else if (ch == ENTER_KEY && y >= 3)
         {
             clear();
             name = data[0];
@@ -202,6 +205,8 @@ static bool join(std::string &name, std::string &bName, std::string &bKey)
         }
         else if ('a' <= ch && ch <= 'z' && (int)data[y].length() < maxLen[y])
         {
+            if (!y && !data[0].length())
+                ch += 'A' - 'a';
             data[y] += ch;
             mvprintw(y, 12, "%s", data[y].c_str());
             x++;
@@ -212,7 +217,7 @@ static bool join(std::string &name, std::string &bName, std::string &bKey)
             mvprintw(y, 12, "%s", data[y].c_str());
             x++;
         }
-        else if (ch == 127 && data[y].length())
+        else if (ch == BACKSPACE_KEY && data[y].length())
         {
             data[y].pop_back();
             mvprintw(y, --x, " ");
@@ -234,11 +239,12 @@ int main(int argc, char **argv)
     {
         std::string name1, name2;
         int h, w, len;
-        initscr();
-        raw();
-        noecho();
         while (true)
         {
+            initscr();
+            raw();
+            noecho();
+            keypad(stdscr, TRUE);
             int mode = chooseMode();
             move(0, 0);
             if (mode == 0)
@@ -263,7 +269,7 @@ int main(int argc, char **argv)
                 ConsolePlayer player1(name1);
                 WebPlayer player2(name1, bName, bKey, h, w, len, true);
                 if (!player2.waitJoin())
-                    return 0;
+                    continue;
                 Board board(h, w, len);
                 NcursesView ncursesView(board, player1, player2);
                 ncursesView.doGameCycle();
@@ -278,7 +284,7 @@ int main(int argc, char **argv)
                 ConsolePlayer player2(name2);
                 WebPlayer player1(name2, bName, bKey, h, w, len, false);
                 if (h < 0)
-                    return 0;
+                    continue;
                 Board board(h, w, len);
                 NcursesView ncursesView(board, player1, player2);
                 ncursesView.doGameCycle();
