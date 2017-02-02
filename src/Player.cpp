@@ -14,20 +14,35 @@ Player::~Player() {}
 ConsolePlayer::ConsolePlayer(std::string name): Player(name) {}
 
 WebPlayer::WebPlayer(std::string name, std::string bName, std::string bKey,
-                     int height, int width, int len): Player("")
+                     int &height, int &width, int &len, bool creator): Player("")
 {
-    _creator = true;
+    _creator = creator;
     _bName = bName;
     _bKey = bKey;
     _curlHandler = curl_easy_init();
     curl_easy_setopt(_curlHandler, CURLOPT_NOPROGRESS, 1L);
     curl_easy_setopt(_curlHandler, CURLOPT_WRITEFUNCTION, getResponce);
-    curl_easy_setopt(_curlHandler, CURLOPT_URL,
-                     ("http://vasyoid.netau.net/xo.php?command=create&name=" + 
-                     _bName + "&key=" + _bKey + "&player=" + name +
-                     "&h=" + std::to_string(height) + "&w=" + std::to_string(width) +
-                     "&len=" + std::to_string(len)).c_str());
-    curl_easy_perform(_curlHandler);
+    if (_creator)
+    {
+        curl_easy_setopt(_curlHandler, CURLOPT_URL,
+                         ("http://vasyoid.netau.net/xo.php?command=create&name=" + 
+                         _bName + "&key=" + _bKey + "&player=" + name +
+                         "&h=" + std::to_string(height) + "&w=" + std::to_string(width) +
+                         "&len=" + std::to_string(len)).c_str());
+        curl_easy_perform(_curlHandler);
+    }
+    else
+    {
+        char otherName[11];
+        curl_easy_setopt(_curlHandler, CURLOPT_URL,
+                         ("http://vasyoid.netau.net/xo.php?command=join&name=" + 
+                         _bName + "&key=" + _bKey + "&player=" + name).c_str());
+        curl_easy_perform(_curlHandler);
+        if (sscanf(responce.c_str(), "%s %i %i %i", otherName, &height, &width, &len) < 4)
+            height = width = len = -1;
+        else
+            _name = otherName;
+    }
 }
 
 std::size_t WebPlayer::getResponce(void *ptr, std::size_t size,
@@ -52,20 +67,38 @@ WebPlayer::~WebPlayer()
     curl_easy_cleanup(_curlHandler);
 }
 
-void WebPlayer::waitJoin()
+bool WebPlayer::waitJoin()
 {
+    int ch;
+    char otherName[11];
+    initscr();
+    raw();
+    noecho();
+    nodelay(stdscr, TRUE);
+    mvprintw(0, 0, "Waiting for opponent...");
+    refresh();
     responce = "";
     curl_easy_setopt(_curlHandler, CURLOPT_URL,
                      ("http://vasyoid.netau.net/xo.php?command=check&name=" + 
                      _bName + "&key=" + _bKey).c_str());
     while (responce == "")
     {
-        sleep(2);
+        ch = getch();
+        if (ch == 'x')
+        {
+           move(0, 0);
+           nodelay(stdscr, FALSE);
+           endwin();
+           return false;
+        }
         curl_easy_perform(_curlHandler);
     }
-    while (responce.size() && (responce.back() < 'a' || 'z' < responce.back()))
-        responce.pop_back();
-    _name = responce;
+    sscanf(responce.c_str(), "%s", otherName);
+    _name = otherName;
+    move(0, 0);
+    nodelay(stdscr, FALSE);
+    endwin();
+    return true;
 }
 
 void Player::oppMove(int x, int y)
@@ -80,6 +113,12 @@ void WebPlayer::oppMove(int x, int y)
     _number++;
     _x = x;
     _y = y;
+    curl_easy_setopt(_curlHandler, CURLOPT_URL,
+                         ("http://vasyoid.netau.net/xo.php?command=insert&name=" + 
+                         _bName + "&key=" + _bKey + "&number=" +
+                         std::to_string(_number) + "&x=" + std::to_string(_x) +
+                         "&y=" + std::to_string(_y)).c_str());
+    curl_easy_perform(_curlHandler);
 }
 
 std::string Player::getName() const
@@ -95,7 +134,7 @@ bool ConsolePlayer::getInput(int &x, int &y, Board &board)
     while (true)
     {
         move(_y, _x);
-        char ch = getch();
+        int ch = getch();
         switch (ch)
         {
             case 65:
@@ -158,7 +197,7 @@ bool WebPlayer::getInput(int &x, int &y, Board &board)
             x = _x;
             y = _y;
             nodelay(stdscr, FALSE);
-            return true;
+            return (_x >= 0);
         }
     }
 }

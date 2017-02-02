@@ -30,6 +30,7 @@ void NcursesView::doGameCycle()
         mvprintw(_board.getH(), 0, "%s Move (%c).\n", player.getName().c_str(), sign);
         if (!player.getInput(x, y, _board))
         {
+            (sign == 'X' ? _player2 : _player1).oppMove(-1, -1);
             curState = DRAW;
             break;
         }
@@ -40,6 +41,8 @@ void NcursesView::doGameCycle()
         curState = _board.isWin();
     }
     _showResult(curState);
+    clear();
+    move(0, 0);
     endwin();
 }
 

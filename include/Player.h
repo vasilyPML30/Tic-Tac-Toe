@@ -32,11 +32,12 @@ class WebPlayer : public Player
 {
 public:
     WebPlayer(std::string name, std::string bName, std::string bKey,
-              int height, int width, int len);
+              int &height, int &width, int &len, bool creator);
+    WebPlayer(std::string name, std::string bName, std::string bKey);
     ~WebPlayer();
     bool getInput(int &x, int &y, Board &board);
     void oppMove(int x, int y);
-    void waitJoin();
+    bool waitJoin();
     static std::size_t getResponce(void *ptr, std::size_t size, std::size_t nmemb, void *stream);
 private:
     bool _creator;
