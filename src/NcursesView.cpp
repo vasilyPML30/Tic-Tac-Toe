@@ -1,5 +1,6 @@
 #include "NcursesView.h"
 #include <ncurses.h>
+#include <unistd.h>
 
 NcursesView::NcursesView(Board &board, Player &p1, Player &p2):
                         _board(board), _player1(p1), _player2(p2) {}
@@ -33,6 +34,7 @@ void NcursesView::doGameCycle()
             break;
         }
         _board.move(x, y, sign);
+        (sign == 'X' ? _player2 : _player1).oppMove(x, y);
         addch(sign);
         sign = (sign == 'O' ? 'X' : 'O');
         curState = _board.isWin();
