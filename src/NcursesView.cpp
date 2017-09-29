@@ -11,18 +11,15 @@
 NcursesView::NcursesView(Board &board, Player &p1, Player &p2):
                         _board(board), _player1(p1), _player2(p2) {}
 
-void NcursesView::showBoard() const
-{
-    for (int y = 0; y < _board.getH(); y++)
-    {
+void NcursesView::showBoard() const {
+    for (int y = 0; y < _board.getH(); y++) {
         for (int x = 0; x < _board.getW(); x++)
             printw("%c", _board.getCell(x, y));
         printw("\n");
     }
 }
 
-void NcursesView::doGameCycle()
-{
+void NcursesView::doGameCycle() {
     state curState = GAME;
     char sign = 'X';
     int x = 0, y = 0;
@@ -30,12 +27,10 @@ void NcursesView::doGameCycle()
     raw();
     noecho();
     showBoard();
-    while (curState == GAME)
-    {
+    while (curState == GAME) {
         Player &player = (sign == 'X' ? _player1 : _player2);
         mvprintw(_board.getH(), 0, "%s's move (%c).\n", player.getName().c_str(), sign);
-        if (!player.getInput(x, y, _board))
-        {
+        if (!player.getInput(x, y, _board)) {
             (sign == 'X' ? _player2 : _player1).oppMove(-1, -1);
             curState = DRAW;
             break;
@@ -52,8 +47,7 @@ void NcursesView::doGameCycle()
     endwin();
 }
 
-void NcursesView::_showResult(state result) const
-{
+void NcursesView::_showResult(state result) const {
     if (result == DRAW)
         mvprintw(_board.getH(), 0, "Draw.\nPress any key to exit\n");
     else

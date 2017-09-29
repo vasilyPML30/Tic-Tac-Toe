@@ -22,8 +22,7 @@
   #define BACKSPACE_KEY 127
 #endif
 
-class Player
-{
+class Player {
 public:
     Player(std::string _name);
     virtual ~Player();
@@ -37,15 +36,13 @@ protected:
     int _number;
 };
 
-class ConsolePlayer : public Player
-{
+class ConsolePlayer : public Player {
 public:
     ConsolePlayer(std::string name);
     bool getInput(int &x, int &y, Board &board);
 };
 
-class WebPlayer : public Player
-{
+class WebPlayer : public Player {
 public:
     WebPlayer(std::string name, std::string bName, std::string bKey,
               int &height, int &width, int &len, bool creator);
